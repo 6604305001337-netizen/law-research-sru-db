@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบฐานข้อมูลวิจัย - คณะนิติศาสตร์ มรส.</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --law-maroon: #800000;
+            --law-maroon-dark: #4a0000;
+            --law-gold: #D4AF37;
+            --law-gold-light: #F4D03F;
+        }
+
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #e5e7eb; 
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* ปรับพื้นหลังให้เข้มขึ้นเล็กน้อยแต่ยังโปร่งใส */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background-image: url('logo.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 55%;
+            opacity: 0.15; /* เพิ่มความเข้มจาก 0.1 เป็น 0.15 */
+            filter: grayscale(30%);
+            pointer-events: none;
+        }
+
+        .majestic-header {
+            background: linear-gradient(135deg, var(--law-maroon-dark) 0%, var(--law-maroon) 100%);
+            color: white;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+            border-bottom: 3px solid var(--law-gold);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        /* ตกแต่งกรอบโลโก้ให้สวยงาม */
+        .logo-frame {
+            background: white;
+            padding: 4px;
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            border: 2px solid var(--law-gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        .logo-frame:hover { transform: rotate(5deg) scale(1.05); }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.92); /* โปร่งใสสไตล์ Glassmorphism */
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-premium {
+            background: linear-gradient(to right, var(--law-gold), #b3922d);
+            color: var(--law-maroon-dark);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+            filter: brightness(1.1);
+        }
+
+        .modal { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); justify-content: center; align-items: center; }
+        
+        /* สไตล์ Card งานวิจัย */
+        .research-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+        .research-item:hover {
+            border-color: var(--law-gold);
+            transform: translateX(5px);
+            background: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="majestic-header">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-5">
+                <div class="logo-frame w-14 h-14 md:w-16 md:h-16">
+                    <img src="logo.png" class="h-10 md:h-12 w-auto" onerror="this.src='https://upload.wikimedia.org/wikipedia/th/a/a2/Suratthani_Rajabhat_University_Logo.png'">
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">คณะนิติศาสตร์</h1>
+                    <p class="text-xs md:text-sm text-law-gold-light font-light opacity-90">SURAT THANI RAJABHAT UNIVERSITY</p>
+                </div>
+            </div>
+            
+            <button onclick="openAddModal()" class="btn-premium">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span class="hidden sm:inline">เพิ่มข้อมูลวิจัย</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-10 max-w-5xl">
+        
+        <div class="content-card p-8 mb-10 border-t-8 border-law-maroon">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl font-bold text-law-maroon-dark flex items-center gap-3">
+                    <div class="w-2 h-8 bg-law-gold rounded-full"></div>
+                    คลังข้อมูลงานวิจัยและตีพิมพ์
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+                <div class="md:col-span-7">
+                    <div class="relative group">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-law-maroon transition-colors"></i>
+                        <input type="text" id="searchInput" placeholder="ค้นหาชื่อเรื่อง หรือ ชื่อผู้วิจัย..." 
+                               class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:ring-4 focus:ring-red-50/50 focus:border-law-maroon outline-none transition-all text-gray-700" onkeyup="filterData()">
+                    </div>
+                </div>
+                <div class="md:col-span-5 flex gap-3">
+                    <select id="yearFilter" onchange="filterData()" class="flex-1 p-3.5 bg-gray-50 border-2 border-gray-100 rounded-2xl outline-none focus:border-law-maroon cursor-pointer font-medium text-gray-600">
+                        <option value="">ทุกปีงบประมาณ</option>
+                        <option value="2570">2570</option><option value="2569">2569</option>
+                        <option value="2568">2568</option><option value="2567">2567</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsList" class="space-y-4">
+            </div>
+    </main>
+
+    <div id="addModal" class="modal px-4">
+        <div class="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl transform transition-all">
+            <div class="bg-law-maroon p-6 text-white flex justify-between items-center">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i data-lucide="form-input" class="text-law-gold"></i> แบบฟอร์มบันทึกข้อมูล
+                </h3>
+                <button onclick="closeModal('addModal')" class="hover:rotate-90 transition-transform"><i data-lucide="x"></i></button>
+            </div>
+            
+            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">ชื่อบทความ / โครงการวิจัย</label>
+                    <input type="text" id="addTitle" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-law-maroon/20 focus:border-law-maroon outline-none">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">ชื่อผู้วิจัย (ระบุตำแหน่งทางวิชาการ)</label>
+                    <input type="text" id="addAuthors" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-law-maroon/20 focus:border-law-maroon outline-none" placeholder="เช่น ผศ.ดร.สมชาย ใจดี">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">ปีงบประมาณ</label>
+                    <select id="addYear" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-law-maroon">
+                        <option value="2570">2570</option>
+                        <option value="2569">2569</option>
+                        <option value="2568" selected>2568</option>
+                        <option value="2567">2567</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">กลุ่ม TCI</label>
+                    <select id="addTci" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-law-maroon">
+                        <option value="">ไม่ระบุ</option>
+                        <option value="1">กลุ่ม 1</option>
+                        <option value="2">กลุ่ม 2</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">แนบไฟล์เอกสาร (PDF/Word)</label>
+                    <div class="relative border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center hover:bg-red-50/30 transition-colors">
+                        <input type="file" id="addFile" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileSelect(this)">
+                        <i data-lucide="upload-cloud" class="w-10 h-10 text-law-gold mx-auto mb-2"></i>
+                        <p class="text-sm text-gray-500" id="fileNameDisplay">คลิกหรือลากไฟล์มาวางที่นี่</p>
+                    </div>
+                </div>
+                <div class="md:col-span-2 flex justify-end gap-3 mt-4">
+                    <button onclick="closeModal('addModal')" class="px-6 py-3 text-gray-500 font-medium hover:bg-gray-100 rounded-xl transition">ยกเลิก</button>
+                    <button onclick="saveNewData()" id="saveBtn" class="px-8 py-3 bg-law-maroon text-white font-bold rounded-xl shadow-lg hover:bg-red-900 transition flex items-center gap-2">
+                        <i data-lucide="save" class="w-5 h-5"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwN3EPyLEHabxq0atWjMaqYNyqHGL97je38TW18OjljWf9TcK_vM_6pKitBqBpCYg/exec";
+        let db = [];
+        let selectedFileData = "";
+
+        // โหลดข้อมูลเมื่อเปิดหน้า
+        window.onload = () => {
+            lucide.createIcons();
+            loadData();
+        };
+
+        function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // ฟังก์ชันจัดการไฟล์
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) { 
+                    alert("ไฟล์ต้องมีขนาดไม่เกิน 2MB");
+                    input.value = "";
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedFileData = e.target.result;
+                    document.getElementById('fileNameDisplay').innerText = "เลือกไฟล์แล้ว: " + file.name;
+                    document.getElementById('fileNameDisplay').classList.add('text-law-maroon', 'font-bold');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function loadData() {
+            const list = document.getElementById('resultsList');
+            list.innerHTML = '<div class="text-center py-20 text-gray-400 animate-pulse">กำลังดึงข้อมูลฐานข้อมูล...</div>';
+            try {
+                const res = await fetch(API_URL);
+                db = await res.json();
+                renderData();
+            } catch (e) {
+                list.innerHTML = '<div class="text-center py-20 text-red-400">การเชื่อมต่อผิดพลาด</div>';
+            }
+        }
+
+        function renderData(data = db) {
+            const list = document.getElementById('resultsList');
+            list.innerHTML = data.length ? '' : '<div class="text-center py-20 text-gray-400 bg-white rounded-3xl">ไม่พบข้อมูล</div>';
+            
+            data.forEach(item => {
+                const html = `
+                    <div class="content-card p-6 research-item border-l-8 border-law-maroon">
+                        <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                            <div class="flex-1">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <span class="px-3 py-1 bg-red-100 text-law-maroon text-xs font-bold rounded-full">ปีงบประมาณ ${item.year}</span>
+                                    ${item.tci ? `<span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">TCI กลุ่ม ${item.tci}</span>` : ''}
+                                </div>
+                                <h3 class="text-lg font-bold text-gray-800 mb-2 leading-tight">${item.title}</h3>
+                                <p class="text-gray-600 flex items-center gap-2 text-sm">
+                                    <i data-lucide="user" class="w-4 h-4 text-law-gold"></i> ${item.author}
+                                </p>
+                            </div>
+                            <div class="w-full md:w-auto">
+                                ${item.file ? `
+                                    <a href="${item.file}" download="Research_${item.year}" class="flex items-center justify-center gap-2 bg-gray-800 text-white px-5 py-2.5 rounded-xl hover:bg-black transition text-sm font-medium">
+                                        <i data-lucide="download" class="w-4 h-4 text-law-gold"></i> ดาวน์โหลดไฟล์
+                                    </a>
+                                ` : '<span class="text-gray-300 text-xs italic">ไม่มีไฟล์แนบ</span>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.insertAdjacentHTML('beforeend', html);
+            });
+            lucide.createIcons();
+        }
+
+        async function saveNewData() {
+            const title = document.getElementById('addTitle').value;
+            const author = document.getElementById('addAuthors').value;
+            if (!title || !author) return alert("กรุณาระบุชื่อเรื่องและผู้วิจัย");
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerHTML = "กำลังบันทึก...";
+
+            const payload = {
+                year: document.getElementById('addYear').value,
+                title: title,
+                author: author,
+                tci: document.getElementById('addTci').value,
+                fund: "รายได้คณะ",
+                file: selectedFileData
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                });
+                alert("บันทึกสำเร็จ!");
+                location.reload();
+            } catch (e) {
+                alert("เกิดข้อผิดพลาด");
+                btn.disabled = false;
+                btn.innerHTML = "บันทึกข้อมูล";
+            }
+        }
+
+        function filterData() {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const y = document.getElementById('yearFilter').value;
+            const filtered = db.filter(i => {
+                return (i.title.toLowerCase().includes(q) || i.author.toLowerCase().includes(q)) &&
+                       (y === "" || i.year.toString() === y);
+            });
+            renderData(filtered);
+        }
+    </script>
+</body>
+</html>
